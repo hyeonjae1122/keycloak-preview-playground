@@ -1,0 +1,73 @@
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: keycloak
+
+# Service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: keycloak
+spec:
+  type: ClusterIP
+  selector:
+    app: keycloak
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+---
+# StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: keycloak
+  namespace: keycloak
+spec:
+  serviceName: keycloak-headless
+  replicas: 1  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        # Use the official Keycloak image from Quay.io
+        image: quay.io/keycloak/keycloak:26.5.2
+        args:
+        - start
+        env:
+          # Enable client authentication for federated and Kubernetes service accounts
+        - name: KC_FEATURES          
+          value: "client-auth-federated,kubernetes-service-accounts"
+          # Configure the truststore to include the Kubernetes CA certificate for secure communication with the Kubernetes API server
+        - name: KC_TRUSTSTORE_PATHS
+          value: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+          # Set the Keycloak admin username and password (use secure values in production)
+        - name: KEYCLOAK_ADMIN
+          value: <KEYCLOAK_ADMIN_USERNAME>  # Replace with a secure username  
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          value: <KEYCLOAK_ADMIN_PASSWORD>  # Replace with a secure password
+        - name: KC_HOSTNAME
+          value: <KC_HOSTNAME>  # Replace with your Keycloak hostname
+        - name: KC_HOSTNAME_STRICT
+          value: "false"
+        - name: KC_HOSTNAME_STRICT_HTTPS
+          value: "false"
+        - name: KC_PROXY
+          value: edge
+        - name: KC_HTTP_ENABLED
+          value: "true"
+        - name: KC_PROXY_HEADERS
+          value: xforwarded
+        ports:
+        - containerPort: 8080
+          name: http
