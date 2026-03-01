@@ -92,6 +92,8 @@ kubectl get all -n dev-operator-team
 
 #### Keycloak Setting using bash automatically
 
+Please run this after the Keycloak pod is fully up and running.
+
 ```bash
 ./keycloak-setup.sh http://localhost:30080 Test admin changeme
 
