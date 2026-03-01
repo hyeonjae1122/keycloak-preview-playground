@@ -1,0 +1,47 @@
+{{- if .Values.keycloak.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.keycloak.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+---
+{{- end }}
+{{- if .Values.cloudManager.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.cloudManager.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+---
+{{- end }}
+{{- if .Values.operatorService.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.operatorService.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+---
+{{- end }}
+{{- if .Values.fileService.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.fileService.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+{{- end }}

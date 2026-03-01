@@ -1,0 +1,14 @@
+apiVersion: v2
+name: keycloak-preview
+description: Helm chart for Keycloak with Kubernetes Service Account Integration
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - keycloak
+  - oauth2
+  - kubernetes
+  - service-accounts
+maintainers:
+  - name: hyeonjae
+    email: hyeonjae0913@gmail.com

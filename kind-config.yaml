@@ -1,0 +1,24 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: keycloak-cluster
+
+# Node settings
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # Keycloak Service
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP
+      # Cloud Manager Service
+      - containerPort: 30081
+        hostPort: 30081
+        protocol: TCP
+      # Operator Service
+      - containerPort: 30082
+        hostPort: 30082
+        protocol: TCP
+      # File Service
+      - containerPort: 30083
+        hostPort: 30083
+        protocol: TCP

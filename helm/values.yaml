@@ -1,0 +1,106 @@
+# Global settings
+global:
+  keycloakHostname: "http://localhost:30080"
+  keycloakInternalUrl: "http://keycloak.keycloak.svc"  # Pod 내부에서 사용
+  cloudManagerServiceUrl: "http://cloud-manager.cloud-manager-team.svc"
+  keycloakRealm: "Test"
+  # SA token audience must match the Keycloak realm issuer URL
+  saTokenAudience: "http://localhost:30080/realms/Test"
+  
+# Keycloak Configuration
+keycloak:
+  enabled: true
+  namespace: keycloak
+  replicaCount: 1
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "26.5.2"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 8080
+    nodePort: 30080
+  
+  admin:
+    username: admin
+    password: changeme
+  
+  config:
+    isDevMode: "start-dev" # Use start-dev for development, switch to "start" for production
+    features: "client-auth-federated,kubernetes-service-accounts"
+    # hostnameStrict: "false"
+    # hostnameStrictHttps: "false"
+    # proxy: edge
+    # httpEnabled: "true"
+    # proxyHeaders: xforwarded
+
+# Cloud Manager Service Configuration
+cloudManager:
+  enabled: true
+  namespace: cloud-manager-team
+  replicaCount: 1
+  image:
+    repository: hyeonjae0913/keycloak-preview-server
+    tag: "1.0.0"
+    pullPolicy: Always
+  
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 8080
+    nodePort: 30081
+  
+  config:
+    introspectClientId: "cloud-manager-service"
+    # For simplicity, we're using a static secret here. In production, consider using Kubernetes Secrets or an external vault.
+    introspectClientSecret: "i6cZGJ8t88fYbhmOvhmH2uq14Lsuf0dr"
+    fileServiceAccount: "system:serviceaccount:dev-file-manage-team:sa-file-service"
+    operatorServiceAccount: "system:serviceaccount:dev-operator-team:sa-operator-service"
+
+# Operator Service Configuration
+operatorService:
+  enabled: true
+  namespace: dev-operator-team
+  replicaCount: 1
+  image:
+    repository: hyeonjae0913/keycloak-preview-client
+    tag: "1.0.2"
+    pullPolicy: Always
+  
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 8080
+    nodePort: 30082
+  
+  serviceAccount:
+    name: sa-operator-service
+  
+  keycloakToken:
+    audience: "{{ .Values.global.keycloakHostname }}/realms/{{ .Values.global.keycloakRealm }}"
+    expirationSeconds: 600
+
+# File Service Configuration
+fileService:
+  enabled: true
+  namespace: dev-file-manage-team
+  replicaCount: 1
+  image:
+    repository: hyeonjae0913/keycloak-preview-client
+    tag: "1.0.2"
+    pullPolicy: Always
+  
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 8080
+    nodePort: 30083
+  
+  serviceAccount:
+    name: sa-file-service
+  
+  keycloakToken:
+    audience: "{{ .Values.global.keycloakHostname }}/realms/{{ .Values.global.keycloakRealm }}"
+    expirationSeconds: 600

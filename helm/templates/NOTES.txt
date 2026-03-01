@@ -1,0 +1,53 @@
+Keycloak Preview Helm Chart has been deployed!
+
+## Getting Started
+
+1. Verify all resources are deployed:
+   kubectl get all -n keycloak
+   kubectl get all -n cloud-manager-team
+   kubectl get all -n dev-operator-team
+   kubectl get all -n dev-file-manage-team
+
+2. Port forward to Keycloak:
+   kubectl port-forward -n keycloak svc/keycloak 8080:80
+
+3. Access Keycloak:
+   http://localhost:8080
+
+## Configuration
+
+Edit values.yaml to customize:
+  - Keycloak admin credentials
+  - Service replicas
+  - Container images and tags
+  - Keycloak hostname
+  - Keycloak features and configuration
+
+To upgrade the chart with new values:
+   helm upgrade keycloak-preview . -f values.yaml
+
+## Secrets
+
+The following secrets are automatically created:
+  - keycloak-credentials (namespace: keycloak)
+  - cloud-manager-credentials (namespace: cloud-manager-team)
+
+To update secrets after deployment:
+  kubectl set env deployment/cloud-manager-service -n cloud-manager-team KC_INTROSPECT_CLIENT_SECRET=<new-value>
+
+## Debugging
+
+Check pod logs:
+  kubectl logs -n keycloak -f deployment/keycloak
+  kubectl logs -n cloud-manager-team -f deployment/cloud-manager-service
+  kubectl logs -n dev-operator-team -f deployment/operator-service
+  kubectl logs -n dev-file-manage-team -f deployment/file-service
+
+Describe pods:
+  kubectl describe pod -n keycloak
+
+## Documentation
+
+For more information, see:
+  - ../ARCHITECTURE.md
+  - values.yaml (for all configurable options)

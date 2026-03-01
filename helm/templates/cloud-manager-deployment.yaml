@@ -1,0 +1,38 @@
+{{- if .Values.cloudManager.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-manager-service
+  namespace: {{ .Values.cloudManager.namespace }}
+spec:
+  replicas: {{ .Values.cloudManager.replicaCount }}
+  selector:
+    matchLabels:
+      app: cloud-manager-service
+  template:
+    metadata:
+      labels:
+        app: cloud-manager-service
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.cloudManager.image.repository }}:{{ .Values.cloudManager.image.tag }}"
+          imagePullPolicy: {{ .Values.cloudManager.image.pullPolicy }}
+          ports:
+          - containerPort: 8080
+            name: http
+          env:
+            - name: KC_INTROSPECT_URL
+              value: "http://keycloak.{{ .Values.keycloak.namespace }}.svc/realms/{{ .Values.global.keycloakRealm }}/protocol/openid-connect/token/introspect"
+            - name: KC_INTROSPECT_CLIENT_ID
+              value: "{{ .Values.cloudManager.config.introspectClientId }}"
+            - name: KC_INTROSPECT_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-manager-credentials
+                  key: client-secret
+            - name: CLIENT_FILE_SERVICE
+              value: "{{ .Values.cloudManager.config.fileServiceAccount }}"
+            - name: CLIENT_OPERATOR_SERVICE
+              value: "{{ .Values.cloudManager.config.operatorServiceAccount }}"
+{{- end }}

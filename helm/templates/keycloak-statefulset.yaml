@@ -1,0 +1,51 @@
+{{- if .Values.keycloak.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: keycloak
+  namespace: {{ .Values.keycloak.namespace }}
+spec:
+  serviceName: keycloak-headless
+  replicas: {{ .Values.keycloak.replicaCount }}
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+        imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
+        args:
+        - "{{ .Values.keycloak.config.isDevMode }}"
+        env:
+        - name: KC_FEATURES
+          value: "{{ .Values.keycloak.config.features }}"
+        - name: KC_TRUSTSTORE_PATHS
+          value: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+        - name: KEYCLOAK_ADMIN
+          value: "{{ .Values.keycloak.admin.username }}"
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-credentials
+              key: admin-password
+        - name: KC_HOSTNAME
+          value: "{{ .Values.global.keycloakHostname }}"
+        # - name: KC_HOSTNAME_STRICT
+        #   value: "{{ .Values.keycloak.config.hostnameStrict }}"
+        # - name: KC_HOSTNAME_STRICT_HTTPS
+        #   value: "{{ .Values.keycloak.config.hostnameStrictHttps }}"
+        # - name: KC_PROXY
+        #   value: "{{ .Values.keycloak.config.proxy }}"
+        # - name: KC_HTTP_ENABLED
+        #   value: "{{ .Values.keycloak.config.httpEnabled }}"
+        # - name: KC_PROXY_HEADERS
+        #   value: "{{ .Values.keycloak.config.proxyHeaders }}"
+        ports:
+        - containerPort: 8080
+          name: http
+{{- end }}

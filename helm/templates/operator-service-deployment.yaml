@@ -1,0 +1,48 @@
+{{- if .Values.operatorService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operator-service
+  namespace: {{ .Values.operatorService.namespace }}
+spec:
+  replicas: {{ .Values.operatorService.replicaCount }}
+  selector:
+    matchLabels:
+      app: operator-service
+  template:
+    metadata:
+      labels:
+        app: operator-service
+    spec:
+      serviceAccountName: {{ .Values.operatorService.serviceAccount.name }}
+      
+      volumes:
+        - name: kc-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: "{{ .Values.global.saTokenAudience }}"
+                  expirationSeconds: {{ .Values.operatorService.keycloakToken.expirationSeconds }}
+                  path: keycloak-token
+
+      containers:
+        - name: app
+          image: "{{ .Values.operatorService.image.repository }}:{{ .Values.operatorService.image.tag }}"
+          imagePullPolicy: {{ .Values.operatorService.image.pullPolicy }}
+          ports:
+          - containerPort: 8080
+            name: http
+          volumeMounts:
+            - name: kc-token
+              mountPath: /var/run/secrets/tokens
+              readOnly: true
+          env:
+            - name: KC_TOKEN_URL
+              value: "{{ .Values.global.keycloakInternalUrl }}/realms/{{ .Values.global.keycloakRealm }}/protocol/openid-connect/token"
+            - name: KC_CLIENT_ID
+              value: "system:serviceaccount:{{ .Values.operatorService.namespace }}:{{ .Values.operatorService.serviceAccount.name }}"
+            - name: SA_TOKEN_PATH
+              value: "/var/run/secrets/tokens/keycloak-token"
+            - name: CLOUD_MANAGER_SERVICE_URL
+              value: "{{ .Values.global.cloudManagerServiceUrl }}"
+{{- end }}

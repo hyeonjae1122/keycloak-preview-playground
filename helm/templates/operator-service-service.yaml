@@ -1,0 +1,20 @@
+{{- if .Values.operatorService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: operator-service
+  namespace: {{ .Values.operatorService.namespace }}
+  labels:
+    app: operator-service
+spec:
+  type: {{ .Values.operatorService.service.type }}
+  selector:
+    app: operator-service
+  ports:
+  - port: {{ .Values.operatorService.service.port }}
+    targetPort: {{ .Values.operatorService.service.targetPort }}
+    {{- if .Values.operatorService.service.nodePort }}
+    nodePort: {{ .Values.operatorService.service.nodePort }}
+    {{- end }}
+    name: http
+{{- end }}

@@ -1,0 +1,49 @@
+{{- if .Values.fileService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-service
+  namespace: {{ .Values.fileService.namespace }}
+spec:
+  replicas: {{ .Values.fileService.replicaCount }}
+  selector:
+    matchLabels:
+      app: file-service
+  template:
+    metadata:
+      labels:
+        app: file-service
+    spec:
+      serviceAccountName: {{ .Values.fileService.serviceAccount.name }}
+      
+      volumes:
+        - name: kc-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: "{{ .Values.global.saTokenAudience }}"
+                  expirationSeconds: {{ .Values.fileService.keycloakToken.expirationSeconds }}
+                  path: keycloak-token
+
+      containers:
+        - name: app
+          image: "{{ .Values.fileService.image.repository }}:{{ .Values.fileService.image.tag }}"
+          imagePullPolicy: {{ .Values.fileService.image.pullPolicy }}
+          ports:
+          - containerPort: 8080
+            name: http
+          volumeMounts:
+            - name: kc-token
+              mountPath: /var/run/secrets/tokens
+              readOnly: true
+
+          env:
+            - name: KC_TOKEN_URL
+              value: "{{ .Values.global.keycloakInternalUrl }}/realms/{{ .Values.global.keycloakRealm }}/protocol/openid-connect/token"
+            - name: KC_CLIENT_ID
+              value: "system:serviceaccount:{{ .Values.fileService.namespace }}:{{ .Values.fileService.serviceAccount.name }}"
+            - name: SA_TOKEN_PATH
+              value: "/var/run/secrets/tokens/keycloak-token"
+            - name: CLOUD_MANAGER_SERVICE_URL
+              value: "{{ .Values.global.cloudManagerServiceUrl }}"
+{{- end }}

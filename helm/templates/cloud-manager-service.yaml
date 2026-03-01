@@ -1,0 +1,18 @@
+{{- if .Values.cloudManager.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-manager
+  namespace: {{ .Values.cloudManager.namespace }}
+spec:
+  type: {{ .Values.cloudManager.service.type }}
+  selector:
+    app: cloud-manager-service
+  ports:
+  - port: {{ .Values.cloudManager.service.port }}
+    targetPort: {{ .Values.cloudManager.service.targetPort }}
+    {{- if .Values.cloudManager.service.nodePort }}
+    nodePort: {{ .Values.cloudManager.service.nodePort }}
+    {{- end }}
+    name: http
+{{- end }}

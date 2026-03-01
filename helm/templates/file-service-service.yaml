@@ -1,0 +1,20 @@
+{{- if .Values.fileService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-service
+  namespace: {{ .Values.fileService.namespace }}
+  labels:
+    app: file-service
+spec:
+  type: {{ .Values.fileService.service.type }}
+  selector:
+    app: file-service
+  ports:
+  - port: {{ .Values.fileService.service.port }}
+    targetPort: {{ .Values.fileService.service.targetPort }}
+    {{- if .Values.fileService.service.nodePort }}
+    nodePort: {{ .Values.fileService.service.nodePort }}
+    {{- end }}
+    name: http
+{{- end }}
