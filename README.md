@@ -1,7 +1,6 @@
 # keycloak-preview
 
-This is a playground example that demonstrates federated client authentication in Keycloak using Kubernetes Service Account Tokens, based on the January 2026 Keycloak update: https://www.keycloak.org/2026/01/
-federated-client-authentication
+This is a playground example that demonstrates federated client authentication in Keycloak using Kubernetes Service Account Tokens, based on the January 2026 Keycloak update: https://www.keycloak.org/2026/01/federated-client-authentication
 
 
 This chart deploys:
@@ -94,7 +93,7 @@ kubectl get all -n dev-operator-team
 #### Keycloak Setting using bash automatically
 
 ```bash
-/keycloak-setup.sh http://localhost:30080 Test admin changeme
+./keycloak-setup.sh http://localhost:30080 Test admin changeme
 
 # keycloak-setup.sh <keycloak_url> <realm> [admin_username] [admin_password]
 ```
@@ -129,13 +128,13 @@ Policy in current server logic:
 # File service token info
 curl http://localhost:30083/token-info
 
-# Upload path (File Service -> Cloud Manager)
-curl -X GET http://localhost:30083/upload  # Successful response
-curl -X GET http://localhost:30083/batch  # Auth Error
+# File Service gateway endpoints
+curl -X GET http://localhost:30083/upload  # Success
+curl -X GET http://localhost:30083/batch   # Rejected from Cloud Manager service
 
-# Operator path  (Operator Service -> Cloud Manager)
-curl -X GET http://localhost:30082/batch # Successful response
-curl -X GET http://localhost:30082/upload # Auth Error
+# Operator Service gateway endpoints
+curl -X GET http://localhost:30082/batch   # Success
+curl -X GET http://localhost:30082/upload  # Rejected from Cloud Manager service
 ```
 
 
@@ -152,9 +151,9 @@ sequenceDiagram
     Note over A,CL: File Service flow
     U->>A: POST /upload
     
-    NOTE over A: Kubernetes SA JWT <br> /var/run/secrets/tokens/keycloak-token <br> (aud=keycloak realm)
+    Note over A: Kubernetes SA JWT <br> /var/run/secrets/tokens/keycloak-token <br> (aud=keycloak realm)
     A->>KC: POST /token <br> w/ SA JWT
-    NOTE over KC: Verify SA Token
+    Note over KC: Verify SA Token
     KC-->>A: access_token
     A->>CMS: POST /upload <br> (Authorization: Bearer access_token)
     CMS ->> KC : POST /token/introspect <br> w/ access_token
@@ -171,6 +170,11 @@ sequenceDiagram
     CMS -->> A: 403 Forbidden <br> reason: /batch is operator-only
 ```
 
+## Delete Resources
+
+```bash
+kind delete cluster --name keycloak-cluster       
+```
 
 ## Troubleshooting
 
@@ -188,7 +192,7 @@ Fix:
 - Re-deploy and recreate pods
 
 ```bash
-helm upgrade --install keycloak-preview ./helm -n helm
+helm upgrade --install keycloak-preview ./helm -n <release-namespace>
 kubectl -n dev-file-manage-team rollout restart deploy/file-service
 kubectl -n dev-operator-team rollout restart deploy/operator-service
 ```
@@ -198,4 +202,3 @@ kubectl -n dev-operator-team rollout restart deploy/operator-service
 ```bash
 kubectl logs -n cloud-manager-team deployment/cloud-manager-service
 ```
-
