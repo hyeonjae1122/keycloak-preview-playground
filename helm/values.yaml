@@ -1,7 +1,7 @@
 # Global settings
 global:
   keycloakHostname: "http://localhost:30080"
-  keycloakInternalUrl: "http://keycloak.keycloak.svc"  # Pod 내부에서 사용
+  keycloakInternalUrl: "http://keycloak.keycloak.svc" # Internal URL for in-cluster communication
   cloudManagerServiceUrl: "http://cloud-manager.cloud-manager-team.svc"
   keycloakRealm: "Test"
   # SA token audience must match the Keycloak realm issuer URL
