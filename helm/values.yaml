@@ -30,11 +30,6 @@ keycloak:
   config:
     isDevMode: "start-dev" # Use start-dev for development, switch to "start" for production
     features: "client-auth-federated,kubernetes-service-accounts"
-    # hostnameStrict: "false"
-    # hostnameStrictHttps: "false"
-    # proxy: edge
-    # httpEnabled: "true"
-    # proxyHeaders: xforwarded
 
 # Cloud Manager Service Configuration
 cloudManager:

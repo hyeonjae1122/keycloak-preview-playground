@@ -42,12 +42,46 @@ This chart deploys:
 
 ## Quick Start
 
+Install K8s cluster
+```bash
+kind create cluster --config kind-config.yaml --name keycloak-cluster
+```
+
+
+
+## Deploy using Helm Chart
+
+### Key Settings (`helm/values.yaml`)
+
+```yaml
+global:
+  keycloakHostname: "http://localhost:30080"
+  keycloakInternalUrl: "http://keycloak.keycloak.svc"
+  keycloakRealm: "<YOUR_REALM>"
+  saTokenAudience: "http://localhost:30080/realms/<YOUR_REALM>"
+
+keycloak:
+  admin:
+    username: admin
+    password: "<set-at-install-time>"
+
+cloudManager:
+  config:
+    introspectClientId: "cloud-manager-service"
+    introspectClientSecret: "<set-at-install-time>"
+```
+
+Important:
+- `global.saTokenAudience` must match the Keycloak realm issuer URL expected for SA JWT audience validation.
+- If your realm is `master`, update both `keycloakRealm` and `saTokenAudience` accordingly.
+
+
 ```bash
 # 1) Lint
 helm lint ./helm
 
 # 2) Install
-helm upgrade --install keycloak-preview ./helm \
+helm upgrade --install keycloak-preview ./helm
 ```
 
 ## Check Deployment
@@ -80,39 +114,13 @@ Policy in current server logic:
 - `system:serviceaccount:dev-file-manage-team:sa-file-service` -> `/upload`
 - `system:serviceaccount:dev-operator-team:sa-operator-service` -> `/batch`
 
-## Key Settings (`helm/values.yaml`)
 
-```yaml
-global:
-  keycloakHostname: "http://localhost:30080"
-  keycloakInternalUrl: "http://keycloak.keycloak.svc"
-  keycloakRealm: "Test"
-  saTokenAudience: "http://localhost:30080/realms/Test"
-
-keycloak:
-  admin:
-    username: admin
-    password: "<set-at-install-time>"
-
-cloudManager:
-  config:
-    introspectClientId: "cloud-manager-service"
-    introspectClientSecret: "<set-at-install-time>"
-```
-
-Important:
-- `global.saTokenAudience` must match the Keycloak realm issuer URL expected for SA JWT audience validation.
-- If your realm is `master`, update both `keycloakRealm` and `saTokenAudience` accordingly.
-
-## Recommended Secret Injection
-
-Avoid storing real credentials in Git-tracked files.
+## Keycloak Setup
 
 ```bash
-helm upgrade --install keycloak-preview ./helm \
-  -n helm --create-namespace \
-  --set keycloak.admin.password="$KEYCLOAK_ADMIN_PASSWORD" \
-  --set cloudManager.config.introspectClientSecret="$CLOUD_MANAGER_CLIENT_SECRET"
+keycloak-setup.sh <keycloak_url> <realm> [admin_username] [admin_password]
+
+# ./keycloak-setup.sh http://localhost:30080 Test admin changeme
 ```
 
 ## Basic Tests
@@ -122,11 +130,15 @@ helm upgrade --install keycloak-preview ./helm \
 curl http://localhost:30083/token-info
 
 # Upload path (File Service -> Cloud Manager)
-curl -X GET http://localhost:30083/upload
+curl -X GET http://localhost:30083/upload  # Successful response
+curl -X GET http://localhost:30083/batch  # Auth Error
 
 # Operator path  (Operator Service -> Cloud Manager)
-curl -X GET http://localhost:30082/batch
+curl -X GET http://localhost:30082/batch # Successful response
+curl -X GET http://localhost:30082/upload # Auth Error
 ```
+
+
 #### File Service
 ```mermaid
 sequenceDiagram
