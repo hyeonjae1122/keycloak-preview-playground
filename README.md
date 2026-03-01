@@ -49,9 +49,9 @@ kind create cluster --config kind-config.yaml --name keycloak-cluster
 
 
 
-## Deploy using Helm Chart
+### Deploy using Helm Chart
 
-### Key Settings (`helm/values.yaml`)
+#### Key Settings (`helm/values.yaml`)
 
 ```yaml
 global:
@@ -75,16 +75,12 @@ Important:
 - `global.saTokenAudience` must match the Keycloak realm issuer URL expected for SA JWT audience validation.
 - If your realm is `master`, update both `keycloakRealm` and `saTokenAudience` accordingly.
 
-
+#### Install using helm chart
 ```bash
-# 1) Lint
-helm lint ./helm
-
-# 2) Install
 helm upgrade --install keycloak-preview ./helm
 ```
 
-## Check Deployment
+#### Check Deployment
 
 ```bash
 helm status keycloak-preview
@@ -94,6 +90,16 @@ kubectl get all -n cloud-manager-team
 kubectl get all -n dev-file-manage-team
 kubectl get all -n dev-operator-team
 ```
+
+#### Keycloak Setting using bash automatically
+
+```bash
+/keycloak-setup.sh http://localhost:30080 Test admin changeme
+
+# keycloak-setup.sh <keycloak_url> <realm> [admin_username] [admin_password]
+```
+
+
 
 ## Service Endpoints (default NodePorts)
 
@@ -115,13 +121,7 @@ Policy in current server logic:
 - `system:serviceaccount:dev-operator-team:sa-operator-service` -> `/batch`
 
 
-## Keycloak Setup
 
-```bash
-keycloak-setup.sh <keycloak_url> <realm> [admin_username] [admin_password]
-
-# ./keycloak-setup.sh http://localhost:30080 Test admin changeme
-```
 
 ## Basic Tests
 
